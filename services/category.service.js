@@ -12,25 +12,26 @@ class CategoryService {
   }
 
   async find() {
-    const categories = await models.Category.findAll();
-    return categories;
+    return await models.Category.findAll();
   }
 
   async findOne(id) {
-    const category = await models.Category.findByPk(id, {
-      include: ['products']
-    });
+    const category = await models.Category.findByPk(id);
+    if (!category) {
+      throw boom.notFound('Category not found');
+    }
     return category;
   }
 
   async update(id, changes) {
-    return {
-      id,
-      changes,
-    };
+    const category = await this.findOne(id);
+    const updatedCategory = await category.update(changes);
+    return updatedCategory;
   }
 
   async delete(id) {
+    const category = await this.findOne(id);
+    await category.destroy();
     return { id };
   }
 

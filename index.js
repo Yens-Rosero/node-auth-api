@@ -1,8 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const routerApi = require('./routes');
+const { checkApiKey } = require('./middlewares/auth.handler');
 
-const { logErrors, errorHandler, boomErrorHandler, ormErrorHandler } = require('./middlewares/error.handler');
+const {
+  logErrors,
+  errorHandler,
+  boomErrorHandler,
+  ormErrorHandler,
+} = require('./middlewares/error.handler');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -15,18 +21,16 @@ const options = {
     if (whitelist.includes(origin) || !origin) {
       callback(null, true);
     } else {
-      callback(new Error('no permitido'));
+      callback(new Error('not allowed'));
     }
-  }
-}
+  },
+};
 app.use(cors(options));
 
-app.get('/', (req, res) => {
-  res.send('Hola mi server en express');
-});
+require('./utils/auth');
 
-app.get('/nueva-ruta', (req, res) => {
-  res.send('Hola, soy una nueva ruta');
+app.get('/', checkApiKey, (req, res) => {
+  res.send('Hello, my server in express');
 });
 
 routerApi(app);
@@ -36,7 +40,6 @@ app.use(ormErrorHandler);
 app.use(boomErrorHandler);
 app.use(errorHandler);
 
-
 app.listen(port, () => {
-  console.log(`Mi port ${port}`);
+  console.log(`My port ${port}`);
 });
